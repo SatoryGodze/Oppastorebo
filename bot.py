@@ -5,7 +5,10 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pytz
 
-bot = telebot.TeleBot('8469760366:AAEFlqoAI1YZXkb3cO7v94xZ6rTV5e5fFTc')
+import os
+bot = telebot.TeleBot(os.getenv('8469760366:AAEFlqoAI1YZXkb3cO7v94xZ6rTV5e5fFTc')))
+
+
 
 
 def open_keyboard():
@@ -261,6 +264,7 @@ def start_order_calculator(call):
 • 👕 Футболки/Шорты: 0.5 кг
 • 🧦 Носки/Нижнее белье: 0.2 кг
 
+*Доставка из Кореи:* 20 000 вон за кг
 *Курсы ЦБ обновлены:* {last_update_time} МСК
 """
 
@@ -290,6 +294,7 @@ def handle_calc_category(call):
 
 Категория: *{category_names[category]}*
 Примерный вес: *{category_weights[category]} кг*
+Доставка: *20 000 вон за кг*
 
 Выберите валюту для расчета:
 
@@ -326,6 +331,7 @@ def handle_currency_selection(call):
 Категория: *{category_names[category]}*
 Валюта: *{currency_info['name']} ({currency_code})*
 Курс: *{currency_info['rate']:.2f} руб.* (ЦБ + 5%)
+Доставка: *20 000 вон за кг*
 
 Введите стоимость товара в цифрах:
 • Например: `100` или `150000`
@@ -382,10 +388,11 @@ def calculate_order(message):
         # Получаем примерный вес товара
         weight = category_weights[category]
 
-        # Рассчитываем стоимость доставки из Кореи (22 000 вон за кг)
+        # Рассчитываем стоимость доставки из Кореи (20 000 вон за кг)
+        delivery_cost_krw_per_kg = 20000  # Исправлено с 22000 на 20000
         usd_to_krw = 1300
         krw_rate = rate / usd_to_krw
-        delivery_cost_krw = 20000 * weight
+        delivery_cost_krw = delivery_cost_krw_per_kg * weight
         delivery_cost_rub = delivery_cost_krw * krw_rate
 
         # Итоговая стоимость (товар + комиссия + доставка)
@@ -409,6 +416,7 @@ def calculate_order(message):
 *Валюта:* {currency_info['name']}
 *Стоимость товара:* {format_number(amount)}
 *Курс валюты:* {rate:.2f} руб. (ЦБ + 5%)
+*Доставка из Кореи:* 20 000 вон за кг
 
 *Расчет:*
 • Стоимость товара: {format_number(product_cost_rub)} руб.
@@ -454,19 +462,19 @@ def handle_cargo(call):
 
 📦 *Выберите тип расчета:*
 
-• Для вещей (одежда, обувь) - расчет за КГ
-• Для электроники - расчет за ШТУКУ
+• Для вещей (одежда, обувь) - расчет за КГ (20 000 вон/кг)
+• Для электроники - расчет за ШТУКУ (120 000 вон/шт)
 • Для крупногабаритных товаров - индивидуальный расчет
 
 💡 *Важно:* 
-• Вещи: 22 000 вон за кг
-• Электроника: от 90 000 вон за штуку
+• Вещи: 20 000 вон за кг
+• Электроника: 120 000 вон за штуку
 • Крупногабаритные: рассчитывается отдельно
 """
 
     markup = types.InlineKeyboardMarkup()
-    markup.row(types.InlineKeyboardButton('👕 Вещи (расчет за кг)', callback_data='cargo_weight'))
-    markup.row(types.InlineKeyboardButton('📱 Электроника (расчет за штуку)', callback_data='cargo_electronics_count'))
+    markup.row(types.InlineKeyboardButton('👕 Вещи (20 000 вон/кг)', callback_data='cargo_weight'))
+    markup.row(types.InlineKeyboardButton('📱 Электроника (120 000 вон/шт)', callback_data='cargo_electronics_count'))
     markup.row(types.InlineKeyboardButton('📦 Крупногабаритный товар', callback_data='cargo_large'))
     markup.row(types.InlineKeyboardButton('🔙 Назад', callback_data='back_main'))
 
@@ -562,7 +570,7 @@ def handle_cargo_weight_input(call):
 • `3` - для посылки 3 кг
 • `0.8` - для посылки 800 грамм
 
-*Расчет для вещей идет за КИЛОГРАММ*
+*Расчет для вещей идет за КИЛОГРАММ (20 000 вон/кг)*
 """
 
     markup = types.InlineKeyboardMarkup()
@@ -592,7 +600,7 @@ def handle_cargo_electronics_count(call):
 • `2` - для 2 телефонов
 • `3` - для 3 единиц техники
 
-*Расчет для электроники идет за ШТУКУ*
+*Расчет для электроники идет за ШТУКУ (120 000 вон/шт)*
 """
 
     markup = types.InlineKeyboardMarkup()
@@ -629,7 +637,7 @@ def handle_cargo_weight_clothes(message):
         usd_to_krw = 1300
         krw_rate = usd_rate / usd_to_krw
 
-        clothes_price_krw = 22000
+        clothes_price_krw = 20000  # Исправлено с 22000 на 20000
         clothes_price_rub = clothes_price_krw * krw_rate
         total_cost = clothes_price_rub * weight
 
@@ -681,7 +689,6 @@ def handle_cargo_weight_clothes(message):
                          parse_mode='Markdown')
 
 
-
 @bot.message_handler(
     func=lambda message: user_states.get(message.from_user.id, {}).get('state') == 'waiting_electronics_count')
 def handle_electronics_count(message):
@@ -703,9 +710,10 @@ def handle_electronics_count(message):
         krw_rate = usd_rate / usd_to_krw
 
         cargo_text = f"""
-📱 *ВЫБЕРИТЕ ТИП ЭЛЕКТРОНИКИ*
+📱 *РАСЧЕТ ДОСТАВКИ ЭЛЕКТРОНИКИ*
 
 Количество штук: *{count} шт*
+Стоимость доставки: *120 000 вон за штуку*
 
 💰 *Актуальные курсы:*
 • 1 USD = {usd_rate:.2f} RUB (ЦБ РФ + 5%)
@@ -713,8 +721,7 @@ def handle_electronics_count(message):
 """
 
         markup = types.InlineKeyboardMarkup()
-        markup.row(types.InlineKeyboardButton('📱 Мелкая техника', callback_data='cargo_electronics_small'))
-        markup.row(types.InlineKeyboardButton('💻 Крупная техника', callback_data='cargo_electronics_large'))
+        markup.row(types.InlineKeyboardButton('📱 Вся электроника', callback_data='cargo_electronics'))
         markup.row(types.InlineKeyboardButton('🔙 Назад', callback_data='cargo'))
 
         bot.send_message(
@@ -729,245 +736,57 @@ def handle_electronics_count(message):
                          parse_mode='Markdown')
 
 
-# Обработчик для мелкой техники
-@bot.callback_query_handler(func=lambda call: call.data == 'cargo_electronics_small')
-def handle_cargo_electronics_small(call):
-    user_data = user_states.get(call.from_user.id, {})
-    count = user_data.get('electronics_count', 1)  # По умолчанию 1 штука
-
-    # Получаем курсы из ЦБ РФ
-    usd_rate = currency_rates['USD']['rate']
-    usd_to_krw = 1300
-    krw_rate = usd_rate / usd_to_krw
-
-    small_tech_price_krw = 90000  # 90 000 вон за штуку
-    small_tech_price_rub = small_tech_price_krw * krw_rate
-    total_cost = small_tech_price_rub * count
-
-    cargo_text = f"""
-📱 *ДОСТАВКА МЕЛКОЙ ТЕХНИКИ*
-
-*Количество:* {count} шт
-*Стоимость за шт:* 90 000 вон (~{small_tech_price_rub:,.0f} руб.)
-*Общая стоимость:* ~{total_cost:,.0f} руб.
-
-💰 *Расчет:* ЗА ШТУКУ
-*Пример:* {count} шт × 90 000 вон = {count * 90000:,} вон
-
-*Курсы ЦБ РФ:*
-• 1 USD = {usd_rate:.2f} RUB (+5%)
-• 1 KRW ≈ {krw_rate:.4f} RUB
-
-*Мелкая техника (90 000 вон/ШТУКА):*
-• Телефоны и смартфоны
-• Наушники и гарнитуры
-• Умные часы и фитнес-браслеты
-• Планшеты
-• Фотоаппараты
-• Powerbank
-• Кабели и зарядные устройства
-
-⚠️ *Важно:* 
-• Для электроники расчет идет ЗА ШТУКУ
-• Цена фиксированная за каждую единицу товара
-• Окончательная стоимость - по курсу ЦБ РФ на день оплаты
-
-*Курс обновлен:* {last_update_time} МСК
-"""
-
-    markup = types.InlineKeyboardMarkup()
-    markup.row(types.InlineKeyboardButton('👨‍💻 Рассчитать точную стоимость', url='https://t.me/askingnothingleavemebe'))
-    markup.row(types.InlineKeyboardButton('👨‍💻 Уточнить детали', url='https://t.me/Arxamyn'))
-    markup.row(types.InlineKeyboardButton('🔄 Новый расчет', callback_data='cargo'))
-    markup.row(types.InlineKeyboardButton('🔙 В главное меню', callback_data='back_main'))
-
-    bot.edit_message_text(
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=cargo_text,
-        parse_mode='Markdown',
-        reply_markup=markup
-    )
-
-
-# Обработчик для крупной техники
-@bot.callback_query_handler(func=lambda call: call.data == 'cargo_electronics_large')
-def handle_cargo_electronics_large(call):
-    user_data = user_states.get(call.from_user.id, {})
-    count = user_data.get('electronics_count', 1)  # По умолчанию 1 штука
-
-    # Получаем курсы из ЦБ РФ
-    usd_rate = currency_rates['USD']['rate']
-    usd_to_krw = 1300
-    krw_rate = usd_rate / usd_to_krw
-
-    large_tech_price_krw = 120000  # 120 000 вон за штуку
-    large_tech_price_rub = large_tech_price_krw * krw_rate
-    total_cost = large_tech_price_rub * count
-
-    cargo_text = f"""
-💻 *ДОСТАВКА КРУПНОЙ ТЕХНИКИ*
-
-*Количество:* {count} шт
-*Стоимость за шт:* 120 000 вон (~{large_tech_price_rub:,.0f} руб.)
-*Общая стоимость:* ~{total_cost:,.0f} руб.
-
-💰 *Расчет:* ЗА ШТУКУ
-*Пример:* {count} шт × 120 000 вон = {count * 135000:,} вон
-
-*Курсы ЦБ РФ:*
-• 1 USD = {usd_rate:.2f} RUB (+5%)
-• 1 KRW ≈ {krw_rate:.4f} RUB
-
-*Крупная техника (120 000 вон/ШТУКА):*
-• Ноутбуки и ультрабуки
-• Игровые приставки (PlayStation, Xbox)
-• Техника Dyson (фены, пылесосы)
-• Мониторы
-• Колонки и аудиосистемы
-• Принтеры и МФУ
-• Игровые клавиатуры и мыши
-
-⚠️ *Важно:* 
-• Для электроники расчет идет ЗА ШТУКУ
-• Цена фиксированная за каждую единицу товара
-• Окончательная стоимость - по курсу ЦБ РФ на день оплаты
-
-*Курс обновлен:* {last_update_time} МСК
-"""
-
-    markup = types.InlineKeyboardMarkup()
-    markup.row(types.InlineKeyboardButton('👨‍💻 Рассчитать точную стоимость', url='https://t.me/askingnothingleavemebe'))
-    markup.row(types.InlineKeyboardButton('👨‍💻 Уточнить детали', url='https://t.me/Arxamyn'))
-    markup.row(types.InlineKeyboardButton('🔄 Новый расчет', callback_data='cargo'))
-    markup.row(types.InlineKeyboardButton('🔙 В главное меню', callback_data='back_main'))
-
-    bot.edit_message_text(
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=cargo_text,
-        parse_mode='Markdown',
-        reply_markup=markup
-    )
-
-
+# Обработчик для электроники
 @bot.callback_query_handler(func=lambda call: call.data == 'cargo_electronics')
 def handle_cargo_electronics(call):
     user_data = user_states.get(call.from_user.id, {})
+    count = user_data.get('electronics_count', 1)  # По умолчанию 1 штука
 
     # Получаем курсы из ЦБ РФ
     usd_rate = currency_rates['USD']['rate']
     usd_to_krw = 1300
     krw_rate = usd_rate / usd_to_krw
 
-    small_tech_price_krw = 90000
-    large_tech_price_krw = 120000
-    small_tech_price_rub = small_tech_price_krw * krw_rate
-    large_tech_price_rub = large_tech_price_krw * krw_rate
+    electronics_price_krw = 120000  # Исправлено с 90000 на 120000
+    electronics_price_rub = electronics_price_krw * krw_rate
+    total_cost = electronics_price_rub * count
 
     cargo_text = f"""
 📱 *ДОСТАВКА ЭЛЕКТРОНИКИ*
 
-💰 *Стоимость доставки:*
+*Количество:* {count} шт
+*Стоимость за шт:* 120 000 вон (~{electronics_price_rub:,.0f} руб.)
+*Общая стоимость:* ~{total_cost:,.0f} руб.
 
-*Мелкая техника:* 90 000 вон/ШТУКА
-*В рублях:* ~{small_tech_price_rub:,.0f} руб./шт
-
-*Крупная техника:* 120 000 вон/ШТУКА  
-*В рублях:* ~{large_tech_price_rub:,.0f} руб./шт
+💰 *Расчет:* ЗА ШТУКУ
+*Пример:* {count} шт × 120 000 вон = {count * 120000:,} вон
 
 *Курсы ЦБ РФ:*
 • 1 USD = {usd_rate:.2f} RUB (+5%)
 • 1 KRW ≈ {krw_rate:.4f} RUB
 
-*Мелкая техника (90 000 вон/ШТУКА):*
+*Электроника (120 000 вон/ШТУКА):*
 • Телефоны и смартфоны
 • Наушники и гарнитуры
 • Умные часы и фитнес-браслеты
 • Планшеты
 • Фотоаппараты
-
-*Крупная техника (135 000 вон/ШТУКА):*
-• Ноутбуки и ультрабуки
-• Игровые приставки (PlayStation, Xbox)
-• Техника Dyson (фены, пылесосы)
+• Ноутбуки
+• Игровые приставки
 • Мониторы
 • Колонки и аудиосистемы
 
 ⚠️ *Важно:* 
 • Для электроники расчет идет ЗА ШТУКУ
 • Цена фиксированная за каждую единицу товара
-• Не зависит от веса или размеров (кроме очень больших товаров)
 • Окончательная стоимость - по курсу ЦБ РФ на день оплаты
 
 *Курс обновлен:* {last_update_time} МСК
 """
 
     markup = types.InlineKeyboardMarkup()
-    markup.row(types.InlineKeyboardButton('👨‍💻 Рассчитать мелкую технику', url='https://t.me/askingnothingleavemebe'))
-    markup.row(types.InlineKeyboardButton('👨‍💻 Рассчитать крупную технику', url='https://t.me/Arxamyn'))
-    markup.row(types.InlineKeyboardButton('🔄 Новый расчет', callback_data='cargo'))
-    markup.row(types.InlineKeyboardButton('🔙 В главное меню', callback_data='back_main'))
-
-    bot.edit_message_text(
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=cargo_text,
-        parse_mode='Markdown',
-        reply_markup=markup
-    )
-
-
-@bot.callback_query_handler(func=lambda call: call.data == 'cargo_large')
-def handle_cargo_large(call):
-    user_data = user_states.get(call.from_user.id, {})
-    weight = user_data.get('cargo_weight', 1)  # По умолчанию 1 кг если вес не указан
-
-    # Получаем курсы из ЦБ РФ
-    usd_rate = currency_rates['USD']['rate']
-    usd_to_krw = 1300
-    krw_rate = usd_rate / usd_to_krw
-
-    cargo_text = f"""
-📦 *КРУПНОГАБАРИТНЫЕ ПОСЫЛКИ*
-
-*Вес посылки:* {weight} кг
-
-*Что относится к крупногабаритным:*
-• Мебель (стулья, столы, полки)
-• Крупная бытовая техника
-• Спортивное оборудование
-• Большие партии товаров
-• Товары нестандартных размеров
-
-💼 *Особенности доставки:*
-• Рассчитывается индивидуально
-• Может быть расчет за ШТУКУ или за ОБЪЕМ
-• Зависит от веса и габаритов
-• Требуется специальная упаковка
-• Возможна сборная доставка
-
-💰 *Курсы ЦБ РФ:*
-• 1 USD = {usd_rate:.2f} RUB (+5%)
-• 1 KRW ≈ {krw_rate:.4f} RUB
-
-📞 *Для расчета стоимости свяжитесь с менеджером и предоставьте:*
-• Фото товара
-• Размеры (длина × ширина × высота)
-• Вес ({weight} кг)
-• Количество штук
-• Описание товара
-
-⏰ *Срок расчета:* 1-2 рабочих дня
-
-💡 *Окончательная стоимость рассчитывается по курсу ЦБ РФ на день оплаты!*
-
-*Курс обновлен:* {last_update_time} МСК
-"""
-
-    markup = types.InlineKeyboardMarkup()
-    markup.row(types.InlineKeyboardButton('👨‍💻 Рассчитать крупный товар', url='https://t.me/askingnothingleavemebe'))
-    markup.row(types.InlineKeyboardButton('👨‍💻 Консультация по габаритам', url='https://t.me/Arxamyn'))
+    markup.row(types.InlineKeyboardButton('👨‍💻 Рассчитать точную стоимость', url='https://t.me/askingnothingleavemebe'))
+    markup.row(types.InlineKeyboardButton('👨‍💻 Уточнить детали', url='https://t.me/Arxamyn'))
     markup.row(types.InlineKeyboardButton('🔄 Новый расчет', callback_data='cargo'))
     markup.row(types.InlineKeyboardButton('🔙 В главное меню', callback_data='back_main'))
 
@@ -1105,8 +924,8 @@ def handle_howm(call):
     delivery_text = """🚢 *Стоимость и сроки доставки:*
 
 🇰🇷 *ИЗ КОРЕИ*
-• Одежда/обычные товары: 20 000 вон за кг (~15$)
-• Техника/электроника: 90 000 вон за кг (~62$)
+• Одежда/обычные товары: 20 000 вон за кг
+• Электроника: 120 000 вон за штуку
 • 7-10 дней
 • Судно ходит каждую субботу
 • Приходит в понедельник во Владивосток
