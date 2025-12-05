@@ -385,7 +385,7 @@ def calculate_order(message):
         # Рассчитываем стоимость доставки из Кореи (22 000 вон за кг)
         usd_to_krw = 1300
         krw_rate = rate / usd_to_krw
-        delivery_cost_krw = 22000 * weight
+        delivery_cost_krw = 20000 * weight
         delivery_cost_rub = delivery_cost_krw * krw_rate
 
         # Итоговая стоимость (товар + комиссия + доставка)
@@ -637,11 +637,11 @@ def handle_cargo_weight_clothes(message):
 👕 *РАСЧЕТ ДОСТАВКИ ВЕЩЕЙ*
 
 *Вес посылки:* {weight} кг
-*Стоимость за кг:* 22 000 вон (~{clothes_price_rub:,.0f} руб.)
+*Стоимость за кг:* 20 000 вон (~{clothes_price_rub:,.0f} руб.)
 *Общая стоимость:* ~{total_cost:,.0f} руб.
 
 💰 *Расчет:* ЗА КИЛОГРАММ
-*Пример:* {weight} кг × 22 000 вон = {weight * 22000:,.0f} вон
+*Пример:* {weight} кг × 20 000 вон = {weight * 20000:,.0f} вон
 
 *Курсы ЦБ РФ:*
 • 1 USD = {usd_rate:.2f} RUB (+5%)
@@ -801,7 +801,7 @@ def handle_cargo_electronics_large(call):
     usd_to_krw = 1300
     krw_rate = usd_rate / usd_to_krw
 
-    large_tech_price_krw = 135000  # 135 000 вон за штуку
+    large_tech_price_krw = 120000  # 120 000 вон за штуку
     large_tech_price_rub = large_tech_price_krw * krw_rate
     total_cost = large_tech_price_rub * count
 
@@ -809,17 +809,17 @@ def handle_cargo_electronics_large(call):
 💻 *ДОСТАВКА КРУПНОЙ ТЕХНИКИ*
 
 *Количество:* {count} шт
-*Стоимость за шт:* 135 000 вон (~{large_tech_price_rub:,.0f} руб.)
+*Стоимость за шт:* 120 000 вон (~{large_tech_price_rub:,.0f} руб.)
 *Общая стоимость:* ~{total_cost:,.0f} руб.
 
 💰 *Расчет:* ЗА ШТУКУ
-*Пример:* {count} шт × 135 000 вон = {count * 135000:,} вон
+*Пример:* {count} шт × 120 000 вон = {count * 135000:,} вон
 
 *Курсы ЦБ РФ:*
 • 1 USD = {usd_rate:.2f} RUB (+5%)
 • 1 KRW ≈ {krw_rate:.4f} RUB
 
-*Крупная техника (135 000 вон/ШТУКА):*
+*Крупная техника (120 000 вон/ШТУКА):*
 • Ноутбуки и ультрабуки
 • Игровые приставки (PlayStation, Xbox)
 • Техника Dyson (фены, пылесосы)
@@ -861,7 +861,7 @@ def handle_cargo_electronics(call):
     krw_rate = usd_rate / usd_to_krw
 
     small_tech_price_krw = 90000
-    large_tech_price_krw = 135000
+    large_tech_price_krw = 120000
     small_tech_price_rub = small_tech_price_krw * krw_rate
     large_tech_price_rub = large_tech_price_krw * krw_rate
 
@@ -873,7 +873,7 @@ def handle_cargo_electronics(call):
 *Мелкая техника:* 90 000 вон/ШТУКА
 *В рублях:* ~{small_tech_price_rub:,.0f} руб./шт
 
-*Крупная техника:* 135 000 вон/ШТУКА  
+*Крупная техника:* 120 000 вон/ШТУКА  
 *В рублях:* ~{large_tech_price_rub:,.0f} руб./шт
 
 *Курсы ЦБ РФ:*
