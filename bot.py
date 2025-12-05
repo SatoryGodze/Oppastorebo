@@ -5,8 +5,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import pytz
 
-import os
-bot = telebot.TeleBot(os.getenv('8469760366:AAEFlqoAI1YZXkb3cO7v94xZ6rTV5e5fFTc')))
+bot = telebot.TeleBot('8469760366:AAEFlqoAI1YZXkb3cO7v94xZ6rTV5e5fFTc')
 
 
 
